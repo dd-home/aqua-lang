@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'com.imkiva'
+version '1.0'
+
+sourceCompatibility = 1.11
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java.srcDirs += "src/main/gen"
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation "org.antlr:antlr4-runtime:4.7.2"
+}
