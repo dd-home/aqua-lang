@@ -8,12 +8,12 @@ public class Name {
 
     public Name(String name) {
         this.name = name;
-        this.nameDBI = DBI.UNRESOLVED;
+        this.nameDBI = DBIConstants.UNRESOLVED;
     }
 
     public boolean isUnknown() {
         return this == UNKNOWN
-                || nameDBI == DBI.UNKNOWN
+                || nameDBI == DBIConstants.UNKNOWN
                 || "_".equals(name);
     }
 
@@ -26,6 +26,6 @@ public class Name {
     }
 
     public boolean isResolved() {
-        return nameDBI != DBI.UNRESOLVED;
+        return nameDBI != DBIConstants.UNRESOLVED;
     }
 }
