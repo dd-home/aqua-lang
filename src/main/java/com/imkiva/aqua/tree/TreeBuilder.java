@@ -66,14 +66,12 @@ public class TreeBuilder {
             return buildAppExpr(((ExprAppContext) ctx));
         }
 
+        if (ctx instanceof ExprArrContext) {
+            return buildArrExpr(((ExprArrContext) ctx));
+        }
+
         if (ctx instanceof ExprLamContext) {
-            ExprLamContext piContext = (ExprLamContext) ctx;
-            Expr.Lam lam = new Expr.Lam();
-            lam.body = buildExpr(piContext.expr());
-            lam.teles = piContext.tele().stream()
-                    .map(TreeBuilder::buildTele)
-                    .collect(Collectors.toList());
-            return lam;
+            return buildLamExpr((ExprLamContext) ctx);
         }
 
         throw new IllegalStateException("should not reach here");
@@ -86,6 +84,23 @@ public class TreeBuilder {
                 .map(TreeBuilder::buildArgument)
                 .collect(Collectors.toList());
         return app;
+    }
+
+    private static Expr buildArrExpr(ExprArrContext ctx) {
+        Expr.Arr arr = new Expr.Arr();
+        arr.exprs = ctx.expr().stream()
+                .map(TreeBuilder::buildExpr)
+                .collect(Collectors.toList());
+        return arr;
+    }
+
+    private static Expr buildLamExpr(ExprLamContext ctx) {
+        Expr.Lam lam = new Expr.Lam();
+        lam.body = buildExpr(ctx.expr());
+        lam.teles = ctx.tele().stream()
+                .map(TreeBuilder::buildTele)
+                .collect(Collectors.toList());
+        return lam;
     }
 
     private static Atom buildAtom(AtomContext ctx) {

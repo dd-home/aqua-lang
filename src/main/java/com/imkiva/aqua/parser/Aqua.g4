@@ -1,6 +1,10 @@
 grammar Aqua;
 
-program : '今天、写了程序' statement* '呜哇啊' EOF;
+program : //'今天、写了程序'
+          statement*
+          //'呜哇啊'
+          EOF
+        ;
 
 statement : definition
           ;
@@ -15,6 +19,7 @@ returnExpr : expr  # returnExprExpr
            ;
 
 expr : atom argument*                  # exprApp
+     | <assoc=right> expr '->' expr    # exprArr
      | '\\lam' tele+ '=>' expr         # exprLam
      ;
 

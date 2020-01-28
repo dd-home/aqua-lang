@@ -61,6 +61,11 @@ public class TreeResolver {
             app.arguments.forEach(a -> resolveArgument(dbi, a));
         }
 
+        if (expr instanceof Expr.Arr) {
+            Expr.Arr arr = ((Expr.Arr) expr);
+            arr.exprs.forEach(e -> resolveExpr(dbi, e));
+        }
+
         if (expr instanceof Expr.Lam) {
             Expr.Lam lam = ((Expr.Lam) expr);
             DBICounter lamDBI = new DBICounter(dbi, lam.teles);

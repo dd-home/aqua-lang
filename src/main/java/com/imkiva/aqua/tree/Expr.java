@@ -10,6 +10,10 @@ public class Expr extends Node {
         public List<Argument> arguments;
     }
 
+    public static class Arr extends Expr {
+        public List<Expr> exprs;
+    }
+
     public static class Lam extends Expr {
         public List<Tele> teles;
         public Expr body;
