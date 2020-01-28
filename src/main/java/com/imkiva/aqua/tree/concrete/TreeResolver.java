@@ -74,16 +74,12 @@ public class TreeResolver {
 
         if (typeExpr instanceof AstExpr.Arr) {
             AstExpr.Arr arr = (AstExpr.Arr) typeExpr;
-            Type type = null;
-            Type cursor = null;
-            for (AstExpr e : arr.exprs) {
-                Type t = resolveTypeExpr(dbi, e);
-                if (type == null) {
-                    type = cursor = t;
-                } else {
-                    cursor.resultType = t;
-                    cursor = t;
-                }
+            Type type = resolveTypeExpr(dbi, arr.exprs.get(0));
+            Type cursor = type;
+
+            for (int i = 1; i < arr.exprs.size(); i++) {
+                cursor.resultType = resolveTypeExpr(dbi, arr.exprs.get(i));
+                cursor = cursor.resultType;
             }
             return type;
         }
