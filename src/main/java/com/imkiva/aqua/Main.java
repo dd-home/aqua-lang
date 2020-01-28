@@ -1,16 +1,18 @@
 package com.imkiva.aqua;
 
-import com.imkiva.aqua.tree.Program;
-import com.imkiva.aqua.tree.TreeBuilder;
-import com.imkiva.aqua.tree.TreeResolver;
+import com.imkiva.aqua.tree.ast.AstBuilder;
+import com.imkiva.aqua.tree.ast.AstProgram;
+import com.imkiva.aqua.tree.concrete.Program;
+import com.imkiva.aqua.tree.concrete.TreeResolver;
 
 public class Main {
     public static void main(String[] args) {
-        String code = "今天、写了程序\n" +
-                "\\func dbi (a : Int) => \\lam (f : F) => f a\n" +
-                "呜哇啊";
+        String code = "\n" +
+                "\\func dbi (a b c : A) : A -> B -> B => \\lam (f : A -> B) => f a\n" +
+                "";
 
-        Program program = TreeResolver.resolve(TreeBuilder.build(code));
+        AstProgram astProgram = AstBuilder.build(code);
+        Program program = TreeResolver.resolve(astProgram);
         System.out.println(program);
     }
 }

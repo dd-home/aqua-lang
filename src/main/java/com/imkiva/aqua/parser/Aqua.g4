@@ -9,7 +9,7 @@ program : //'今天、写了程序'
 statement : definition
           ;
 
-definition : '\\func' ID tele* (':' returnExpr)? funcBody  # defFunc
+definition : '\\func' ID tele* ':' returnExpr funcBody  # defFunc
            ;
 
 funcBody : '=>' expr  # withoutElim
