@@ -8,7 +8,7 @@ import com.imkiva.aqua.tree.concrete.TreeResolver;
 public class Main {
     public static void main(String[] args) {
         String code = "\n" +
-                "\\func dbi (a b c : A) : A -> B -> B => \\lam (f : A -> B) => f a\n" +
+                "\\func dbi (a b c : A) : A -> B -> B => \\lam (f : A -> B) : B => f a\n" +
                 "";
 
         AstProgram astProgram = AstBuilder.build(code);

@@ -96,6 +96,7 @@ public class AstBuilder {
     private static AstExpr buildLamExpr(ExprLamContext ctx) {
         AstExpr.Lam lam = new AstExpr.Lam();
         lam.body = buildExpr(ctx.expr());
+        lam.returnExpr = buildReturnExpr(ctx.returnExpr());
         lam.teles = ctx.tele().stream()
                 .map(AstBuilder::buildTele)
                 .collect(Collectors.toList());

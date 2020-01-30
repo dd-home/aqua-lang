@@ -35,21 +35,81 @@ public class TreeResolver {
 
     private static FunctionDefStatement resolveDefFunc(AstDefinition.Func func) {
         DBICounter dbi = new DBICounter(null);
-        FunctionDefStatement statement = new FunctionDefStatement();
+        FunctionDefStatement function = new FunctionDefStatement();
 
-        // resolve name
-        statement.functionName = new Name(func.name);
+        // function can be regarded as an combination of a lambda and a string
+        function.functionName = new Name(func.name);
+        function.lambdaExpr = resolveLambda(dbi, func.teles,
+                func.returnExpr, null);
+        function.lambdaExpr.lambdaBody = resolveFuncBody(dbi, func.body);
+
+        return function;
+    }
+
+    private static LambdaExpr resolveLambda(DBICounter dbi, List<AstTele> teles,
+                                            AstExpr returnExpr, AstExpr bodyExpr) {
+        LambdaExpr expr = new LambdaExpr();
 
         // resolve parameters
-        statement.teles = resolveTeles(dbi, func.teles);
+        expr.lambdaTeles = resolveTeles(dbi, teles);
 
         // resolve return type
-        Type returnType = resolveTypeExpr(dbi, func.returnExpr);
-        statement.functionType = buildFunctionType(statement.teles, returnType);
+        Type returnType = resolveTypeExpr(dbi, returnExpr);
+        expr.lambdaType = buildLambdaType(expr.lambdaTeles, returnType);
 
-        // TODO: resolve body
-//        resolveFuncBody(dbi, func.body);
-        return statement;
+        if (bodyExpr != null) {
+            expr.lambdaBody = new WildcardApplicableBody(resolveExpr(dbi, bodyExpr));
+        }
+        return expr;
+    }
+
+    private static ApplicableBody resolveFuncBody(DBICounter dbi, AstDefinition.Func.Body body) {
+        if (body instanceof AstDefinition.Func.Body.WithoutElim) {
+            AstExpr expr = ((AstDefinition.Func.Body.WithoutElim) body).expr;
+            return new WildcardApplicableBody(resolveExpr(dbi, expr));
+        }
+
+        throw new IllegalStateException("should not reach here");
+    }
+
+    private static Expr resolveExpr(DBICounter dbi, AstExpr expr) {
+        if (expr instanceof AstExpr.Arr) {
+            throw new ResolveException("ArrExpr should be TypeExpr");
+        }
+
+        if (expr instanceof AstExpr.App) {
+            AstExpr.App app = (AstExpr.App) expr;
+            ApplyExpr applyExpr = new ApplyExpr();
+            applyExpr.applicable = resolveAtomExpr(dbi, app.atom);
+            applyExpr.arguments = app.arguments.stream()
+                    .map(a -> resolveAtomExpr(dbi, a.explicitAtom))
+                    .collect(Collectors.toList());
+            return applyExpr;
+        }
+
+        if (expr instanceof AstExpr.Lam) {
+            AstExpr.Lam lam = (AstExpr.Lam) expr;
+            DBICounter lamDbi = new DBICounter(dbi);
+            return resolveLambda(lamDbi, lam.teles, lam.returnExpr, lam.body);
+        }
+
+        throw new IllegalStateException("should not reach here");
+    }
+
+    private static Expr resolveAtomExpr(DBICounter dbi, AstAtom atom) {
+        if (atom instanceof AstAtom.AtomLit) {
+            return new LiteralNameExpr(resolveName(dbi, ((AstAtom.AtomLit) atom).literal));
+        }
+
+        if (atom instanceof AstAtom.AtomNum) {
+            return new LiteralNumberExpr(((AstAtom.AtomNum) atom).number);
+        }
+
+        throw new IllegalStateException("should not reach here");
+    }
+
+    private static Name resolveName(DBICounter dbi, Name literal) {
+        return dbi.resolve(literal);
     }
 
     private static Type resolveTypeExpr(DBICounter dbi, AstExpr typeExpr) {
@@ -107,7 +167,7 @@ public class TreeResolver {
         return namePairs;
     }
 
-    private static Type buildFunctionType(List<NamePair> namePairs, Type returnType) {
+    private static Type buildLambdaType(List<NamePair> namePairs, Type returnType) {
         Type teleType = buildType(namePairs);
         Type cursor = teleType;
 
@@ -124,7 +184,10 @@ public class TreeResolver {
             throw new IllegalArgumentException("Missing result type");
         }
 
-        Type type = new Type(namePairs.get(0).type.typeName);
+        // we make an copy of namePars.get(0).type because
+        // namePairs will be used in later dbi.resolve()
+        // so changing it here may cause unexpected behavior
+        Type type = new Type(namePairs.get(0).type);
 
         if (namePairs.size() > 1) {
             List<NamePair> resultType = namePairs.subList(1, namePairs.size());
@@ -132,55 +195,6 @@ public class TreeResolver {
         }
         return type;
     }
-
-//    private static void resolveFuncBody(DBICounter dbi, AstDefinition.Func.Body body) {
-//        if (body instanceof AstDefinition.Func.Body.WithoutElim) {
-//            resolveExpr(dbi, ((AstDefinition.Func.Body.WithoutElim) body).expr);
-//        }
-//    }
-//
-//    private static void resolveExpr(DBICounter dbi, AstExpr expr) {
-//        if (expr instanceof AstExpr.App) {
-//            AstExpr.App app = ((AstExpr.App) expr);
-//            resolveAtom(dbi, app.atom);
-//            app.arguments.forEach(a -> resolveArgument(dbi, a));
-//        }
-//
-//        if (expr instanceof AstExpr.Arr) {
-//            AstExpr.Arr arr = ((AstExpr.Arr) expr);
-//            arr.exprs.forEach(e -> resolveExpr(dbi, e));
-//        }
-//
-//        if (expr instanceof AstExpr.Lam) {
-//            AstExpr.Lam lam = ((AstExpr.Lam) expr);
-//            DBICounter lamDBI = new DBICounter(dbi, lam.teles);
-//            resolveExpr(lamDBI, lam.body);
-//        }
-//    }
-//
-//    private static void resolveArgument(DBICounter dbi, AstArgument argument) {
-//        resolveAtom(dbi, argument.explicitAtom);
-//    }
-//
-//    private static void resolveAtom(DBICounter dbi, AstAtom atom) {
-//        if (atom instanceof AstAtom.AtomLit) {
-//            Name literal = ((AstAtom.AtomLit) atom).literal;
-//            resolveLiteral(dbi, literal);
-//        }
-//    }
-//
-//    private static void resolveLiteral(DBICounter dbi, Name literal) {
-//        if (literal.isResolved()) {
-//            return;
-//        }
-//
-//        if (literal.isUnknown()) {
-//            literal.setNameDBI(DBI.UNKNOWN);
-//            return;
-//        }
-//
-//        literal.setNameDBI(dbi.resolveName(literal.name));
-//    }
 
     private static List<NamePair> flattenTeles(List<AstTele> teles) {
         return teles.stream()

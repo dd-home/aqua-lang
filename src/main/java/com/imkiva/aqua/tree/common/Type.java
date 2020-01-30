@@ -6,6 +6,10 @@ public class Type {
     public Name typeName;
     public Type resultType;
 
+    public Type(Type t) {
+        assign(t);
+    }
+
     public Type(Name typeName) {
         this.typeName = typeName;
     }

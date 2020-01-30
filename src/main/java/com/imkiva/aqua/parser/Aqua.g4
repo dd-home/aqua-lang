@@ -18,9 +18,9 @@ funcBody : '=>' expr  # withoutElim
 returnExpr : expr  # returnExprExpr
            ;
 
-expr : atom argument*                  # exprApp
-     | <assoc=right> expr '->' expr    # exprArr
-     | '\\lam' tele+ '=>' expr         # exprLam
+expr : atom argument*                               # exprApp
+     | <assoc=right> expr '->' expr                 # exprArr
+     | '\\lam' tele+ ':' returnExpr '=>' expr       # exprLam
      ;
 
 typedExpr : expr          # notTyped

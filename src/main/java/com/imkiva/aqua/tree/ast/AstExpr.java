@@ -16,6 +16,7 @@ public class AstExpr extends AstNode {
 
     public static class Lam extends AstExpr {
         public List<AstTele> teles;
+        public AstExpr returnExpr;
         public AstExpr body;
     }
 
